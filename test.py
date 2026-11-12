@@ -30,9 +30,13 @@ def get_args():
 
 
 def test(model_paths, weights, test_loader, result_path, config):
-    assert len(model_paths) == len(weights), "The number of checkpoints and weights must match."
+    if len(model_paths) != len(weights):
+        raise ValueError("The number of checkpoints and weights must match.")
     weights = np.array(weights, dtype=np.float32)
-    weights /= weights.sum()
+    weight_total = weights.sum()
+    if not np.isfinite(weights).all() or not np.isfinite(weight_total) or weight_total == 0:
+        raise ValueError("Ensemble weights must be finite and have a finite, nonzero sum.")
+    weights /= weight_total
 
     models = []
     for model_path in model_paths:
