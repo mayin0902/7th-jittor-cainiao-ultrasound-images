@@ -33,7 +33,9 @@ class CustomImageDataset(Dataset):
 
         self.total_len = len(self.image_info)
 
-        self.train_augmentations, self.val_augmentations = augmentations
+        self.train_augmentations, self.val_augmentations = (
+            (None, None) if augmentations is None else augmentations
+        )
 
     def __getitem__(self, index):
         img_filename, label = self.image_info[index]
@@ -41,12 +43,12 @@ class CustomImageDataset(Dataset):
         img = load_img(img_path)
 
         if self.mode_type == "train" and self.train_augmentations:
-            img_array = self.train_augmentations(image=img)["image"]
-            img = np.transpose(img_array, [2,0,1])
+            img = self.train_augmentations(image=img)["image"]
 
         elif self.mode_type == "val" and self.val_augmentations:
-            img_array = self.val_augmentations(image=img)["image"]
-            img = np.transpose(img_array, [2,0,1])
+            img = self.val_augmentations(image=img)["image"]
+
+        img = np.transpose(img, [2, 0, 1])
 
         if label is not None:
             label_one_hot = np.eye(self.total_classes)[label]
